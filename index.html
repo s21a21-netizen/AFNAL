@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>オリジナルクリッカー</title>
+  <style>
+    :root {
+      --bg: #f6f3eb;
+      --surface: #ffffff;
+      --ink: #222222;
+      --muted: #666666;
+      --accent: #ff6b35;
+      --accent-dark: #e0521e;
+      --border: #dfd8c8;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px 16px 48px;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 12px 0 18px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .click-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 10px 0;
+    }
+
+    .target-btn {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 5px solid var(--accent);
+      background: #fff8f3;
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.2);
+      transition: transform 0.06s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .target-btn:active {
+      transform: scale(0.92);
+    }
+
+    .target-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .fallback-emoji {
+      font-size: 5rem;
+      line-height: 1;
+    }
+
+    .float-text {
+      position: absolute;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--accent-dark);
+      pointer-events: none;
+      animation: floatUp 0.65s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-48px) scale(1.15);
+      }
+    }
+
+    .shop-title {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+    }
+
+    .shop-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .shop-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fcfaf5;
+    }
+
+    .shop-info h3 {
+      margin: 0 0 2px;
+      font-size: 0.95rem;
+    }
+
+    .shop-info p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .buy-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .buy-btn:disabled {
+      background: #ccc5b8;
+      cursor: not-allowed;
+    }
+
+    .custom-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .custom-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .file-label {
+      display: inline-block;
+      background: #efeae0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .file-label input {
+      display: none;
+    }
+
+    .toggle-btn {
+      background: #efeae0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="card">
+      <h1 id="gameTitle">オリジナルクリッカー</h1>
+
+      <div class="stats">
+        <div>
+          <div class="stat-val" id="scoreVal">0</div>
+          <div class="stat-label">ポイント</div>
+        </div>
+        <div>
+          <div class="stat-val" id="perClickVal">1</div>
+          <div class="stat-label">1クリック</div>
+        </div>
+        <div>
+          <div class="stat-val" id="perSecVal">0</div>
+          <div class="stat-label">毎秒自動</div>
+        </div>
+      </div>
+
+      <div class="click-area" id="clickArea">
+        <button type="button" class="target-btn" id="targetBtn">
+          <span class="fallback-emoji" id="fallbackIcon">🐱</span>
+          <img id="targetImg" alt="クリック対象" style="display: none;" />
+        </button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="shop-title">パワーアップ（強化ショップ）</h2>
+      <div class="shop-list" id="shopList"></div>
+    </section>
+
+    <section class="card custom-box">
+      <h2 class="shop-title">画像・鳴き声テスト（その場で差し替え可能）</h2>
+      <div class="custom-row">
+        <label class="file-label">
+          画像を選ぶ
+          <input type="file" id="imgFileInput" accept="image/*" />
+        </label>
+
+        <label class="file-label">
+          鳴き声（音声）を選ぶ
+          <input type="file" id="soundFileInput" accept="audio/*" />
+        </label>
+
+        <button type="button" class="toggle-btn" id="muteBtn">鳴き声: ON</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ★ リポジトリに固定で画像・音声を置くときはここを書き換えるだけ！
+    // 例: "./image/chara.png" や "./sound/voice.mp3"
+    const DEFAULT_IMAGE_URL = "hyke.png";
+    const DEFAULT_SOUND_URL = "AFLAC あひるの鳴き声.mp3";
+
+    let score = 0;
+    let perClick = 1;
+    let perSec = 0;
+    let isMuted = false;
+    let customSoundUrl = DEFAULT_SOUND_URL;
+    let audioCtx = null;
+
+    const upgrades = [
+      { id: "click1", name: "クリック強化", desc: "1クリック +1", baseCost: 15, count: 0, type: "click", power: 1 },
+      { id: "auto1", name: "自動クリック", desc: "毎秒 +1", baseCost: 50, count: 0, type: "auto", power: 1 },
+      { id: "click2", name: "連打マシン", desc: "1クリック +5", baseCost: 200, count: 0, type: "click", power: 5 },
+      { id: "auto2", name: "量産ファクトリー", desc: "毎秒 +10", baseCost: 600, count: 0, type: "auto", power: 10 }
+    ];
+
+    const scoreVal = document.getElementById("scoreVal");
+    const perClickVal = document.getElementById("perClickVal");
+    const perSecVal = document.getElementById("perSecVal");
+    const targetBtn = document.getElementById("targetBtn");
+    const targetImg = document.getElementById("targetImg");
+    const fallbackIcon = document.getElementById("fallbackIcon");
+    const clickArea = document.getElementById("clickArea");
+    const shopList = document.getElementById("shopList");
+    const imgFileInput = document.getElementById("imgFileInput");
+    const soundFileInput = document.getElementById("soundFileInput");
+    const muteBtn = document.getElementById("muteBtn");
+
+    function setTargetImage(url) {
+      if (!url) return;
+      targetImg.src = url;
+      targetImg.style.display = "block";
+      fallbackIcon.style.display = "none";
+    }
+
+    if (DEFAULT_IMAGE_URL) {
+      setTargetImage(DEFAULT_IMAGE_URL);
+    }
+
+    // 音声ファイルがないとき用の簡易鳴き声（Web Audio API）
+    function playFallbackCry() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(780, now + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(420, now + 0.18);
+
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.19);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    }
+
+    // 連打しても音が途切れないように毎回新しいAudioインスタンスで再生
+    function playCry() {
+      if (isMuted) return;
+      if (customSoundUrl) {
+        const audio = new Audio(customSoundUrl);
+        audio.volume = 0.8;
+        audio.play().catch(() => {});
+      } else {
+        playFallbackCry();
+      }
+    }
+
+    function spawnFloatText(x, y, text) {
+      const el = document.createElement("div");
+      el.className = "float-text";
+      el.textContent = text;
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      clickArea.appendChild(el);
+      setTimeout(() => el.remove(), 650);
+    }
+
+    function getCost(item) {
+      return Math.floor(item.baseCost * Math.pow(1.35, item.count));
+    }
+
+    function renderStats() {
+      scoreVal.textContent = Math.floor(score).toLocaleString();
+      perClickVal.textContent = perClick.toLocaleString();
+      perSecVal.textContent = perSec.toLocaleString();
+    }
+
+    function renderShop() {
+      shopList.innerHTML = "";
+      upgrades.forEach((item) => {
+        const cost = getCost(item);
+        const row = document.createElement("div");
+        row.className = "shop-item";
+        row.innerHTML = `
+          <div class="shop-info">
+            <h3>${item.name}（Lv.${item.count}）</h3>
+            <p>${item.desc} / 必要: ${cost.toLocaleString()} pt</p>
+          </div>
+          <button type="button" class="buy-btn" ${score < cost ? "disabled" : ""}>
+            買う（${cost.toLocaleString()}）
+          </button>
+        `;
+        row.querySelector("button").addEventListener("click", () => {
+          if (score < cost) return;
+          score -= cost;
+          item.count += 1;
+          if (item.type === "click") perClick += item.power;
+          if (item.type === "auto") perSec += item.power;
+          renderStats();
+          renderShop();
+        });
+        shopList.appendChild(row);
+      });
+    }
+
+    targetBtn.addEventListener("click", (e) => {
+      score += perClick;
+      playCry();
+
+      const rect = clickArea.getBoundingClientRect();
+      const x = e.clientX ? e.clientX - rect.left : rect.width / 2;
+      const y = e.clientY ? e.clientY - rect.top : rect.height / 2;
+      spawnFloatText(x, y, `+${perClick}`);
+
+      renderStats();
+      renderShop();
+    });
+
+    imgFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      setTargetImage(url);
+    });
+
+    soundFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      customSoundUrl = URL.createObjectURL(file);
+      playCry();
+    });
+
+    muteBtn.addEventListener("click", () => {
+      isMuted = !isMuted;
+      muteBtn.textContent = `鳴き声: ${isMuted ? "OFF" : "ON"}`;
+    });
+
+    setInterval(() => {
+      if (perSec > 0) {
+        score += perSec / 10;
+        renderStats();
+        renderShop();
+      }
+    }, 100);
+
+    renderStats();
+    renderShop();
+  </script>
+</body>
+</html>
