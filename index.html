@@ -42,6 +42,12 @@
       padding: 18px;
     }
 
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 4px;
+    }
+
     h1 {
       margin: 0 0 4px;
       font-size: 1.4rem;
@@ -180,39 +186,12 @@
       cursor: not-allowed;
     }
 
-    .custom-box {
-      display: grid;
-      gap: 10px;
-    }
-
-    .custom-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .file-label {
-      display: inline-block;
-      background: #efeae0;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .file-label input {
-      display: none;
-    }
-
     .toggle-btn {
       background: #efeae0;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 7px 12px;
-      font-size: 0.85rem;
+      padding: 6px 12px;
+      font-size: 0.82rem;
       font-weight: 700;
       cursor: pointer;
     }
@@ -221,6 +200,9 @@
 <body>
   <div class="container">
     <section class="card">
+      <div class="top-bar">
+        <button type="button" class="toggle-btn" id="muteBtn">鳴き声: ON</button>
+      </div>
       <h1 id="gameTitle">オリジナルクリッカー</h1>
 
       <div class="stats">
@@ -250,27 +232,10 @@
       <h2 class="shop-title">パワーアップ（強化ショップ）</h2>
       <div class="shop-list" id="shopList"></div>
     </section>
-
-    <section class="card custom-box">
-      <h2 class="shop-title">画像・鳴き声テスト（その場で差し替え可能）</h2>
-      <div class="custom-row">
-        <label class="file-label">
-          画像を選ぶ
-          <input type="file" id="imgFileInput" accept="image/*" />
-        </label>
-
-        <label class="file-label">
-          鳴き声（音声）を選ぶ
-          <input type="file" id="soundFileInput" accept="audio/*" />
-        </label>
-
-        <button type="button" class="toggle-btn" id="muteBtn">鳴き声: ON</button>
-      </div>
-    </section>
   </div>
 
   <script>
-    // ★ リポジトリに固定で画像・音声を置くときはここを書き換えるだけ！
+    // ★ 画像と鳴き声のパスはここに入れるよ
     // 例: "./image/chara.png" や "./sound/voice.mp3"
     const DEFAULT_IMAGE_URL = "hyke.png";
     const DEFAULT_SOUND_URL = "AFLAC あひるの鳴き声.mp3";
@@ -279,7 +244,6 @@
     let perClick = 1;
     let perSec = 0;
     let isMuted = false;
-    let customSoundUrl = DEFAULT_SOUND_URL;
     let audioCtx = null;
 
     const upgrades = [
@@ -297,8 +261,6 @@
     const fallbackIcon = document.getElementById("fallbackIcon");
     const clickArea = document.getElementById("clickArea");
     const shopList = document.getElementById("shopList");
-    const imgFileInput = document.getElementById("imgFileInput");
-    const soundFileInput = document.getElementById("soundFileInput");
     const muteBtn = document.getElementById("muteBtn");
 
     function setTargetImage(url) {
@@ -312,7 +274,6 @@
       setTargetImage(DEFAULT_IMAGE_URL);
     }
 
-    // 音声ファイルがないとき用の簡易鳴き声（Web Audio API）
     function playFallbackCry() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -337,11 +298,10 @@
       osc.stop(now + 0.2);
     }
 
-    // 連打しても音が途切れないように毎回新しいAudioインスタンスで再生
     function playCry() {
       if (isMuted) return;
-      if (customSoundUrl) {
-        const audio = new Audio(customSoundUrl);
+      if (DEFAULT_SOUND_URL) {
+        const audio = new Audio(DEFAULT_SOUND_URL);
         audio.volume = 0.8;
         audio.play().catch(() => {});
       } else {
@@ -408,20 +368,6 @@
 
       renderStats();
       renderShop();
-    });
-
-    imgFileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      setTargetImage(url);
-    });
-
-    soundFileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      customSoundUrl = URL.createObjectURL(file);
-      playCry();
     });
 
     muteBtn.addEventListener("click", () => {
